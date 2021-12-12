@@ -26,24 +26,32 @@ def toSizeFloat(number, div):
     strB = str(b)
     strB = strB.zfill(len(str(div)) - 1)
     ret += "." + strB[:rem]
-    zeroPadding = rem - len(strB)
-    if zeroPadding > 0:
-        return ret + "0" * zeroPadding
-    else:
+    return ret
+
+def toSizeFloat2(number):
+    a = number // 1000
+    b = number % 1000
+    ret = str(a)
+    rem = 3 - len(ret)
+    if rem <= 0:
         return ret
+    strB = str(b)
+    strB = strB.zfill(3)
+    ret += "." + strB[:rem]
+    return ret
 
 # 这两个函数的写法是为了保证提取信息和转换回去的结果能完全一致
 # 这样才能够用sample数据来做测试
 # 可能有更简单的写法，太久不写python忘了
 def sizeToStr(size):
-    if size < KB:
-        return "%d bytes" % size
-    elif size < MB:
-        return "%sK" % (toSizeFloat(size, KB))
-    elif size < GB:
-        return "%sM" % (toSizeFloat(size, MB))
+    if size < KB * 1000:
+        return "%d bytes" % (size // 1000)
+    elif size < MB * 1000:
+        return "%sK" % toSizeFloat2(size // KB)
+    elif size < GB * 1000:
+        return "%sM" % toSizeFloat2(size // MB)
     else:
-        return "%sG" % (toSizeFloat(size, GB))
+        return "%sG" % toSizeFloat2(size // GB)
 
 def strToSize(sizeStr):
     digitEnd = len(sizeStr)
@@ -56,13 +64,11 @@ def strToSize(sizeStr):
             break
     
     if dotPosition == -1:
-        a = int(sizeStr[:digitEnd])
-        b = 0
-        div = 1
+        v = int(sizeStr[:digitEnd]) * 1000
     else:
         a = int(sizeStr[:dotPosition])
         b = int(sizeStr[dotPosition + 1: digitEnd])
-        div = 10 ** (digitEnd - dotPosition - 1)
+        v = a * 1000 + b * (10 ** (4 - digitEnd + dotPosition))
 
     unit = sizeStr[digitEnd:]
     if unit == "G":
@@ -74,9 +80,7 @@ def strToSize(sizeStr):
     else:
         mul = 1
 
-    a *= mul
-    b *= mul
-    return a + b // div
+    return v * mul
 
 class Node(object):
     """
@@ -101,10 +105,9 @@ class Node(object):
         ret += " %s  (in %s)" % (self.name, self.moduleName)
         if self.name == "???":
             ret += "  load address 0x%x" % self.loadAddress
-        if self.offset < 56392:    # do not know exactly what is this number
-            ret += " + %d  [0x%x]" % (self.offset, self.address)
-        else:
             ret += " + 0x%x  [0x%x]" % (self.offset, self.address)
+        else:
+            ret += " + %d  [0x%x]" % (self.offset, self.address)
         return ret
 
 def findStartOfLine(lineStr):
@@ -128,7 +131,7 @@ def findSize(lineStr, start):
     start = lineStr.find('(', start)
     if start == -1:
         raise RuntimeError("invalid line! can't parse size!")
-    if lineStr[start:start+4] == "(in ":    # 我们可能没有size，不知道为啥。。。
+    if not lineStr[start + 1].isdigit():    # 我们可能没有size，不知道为啥。。。
         return 0, oldStart
     end = lineStr.find(')', start)
     if end == -1 or end == start + 1:
