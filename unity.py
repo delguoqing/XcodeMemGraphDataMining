@@ -198,11 +198,11 @@ def buildRootNode(lineStr):
 def buildTree(treeStr):
     start = treeStr.find(START_MARK)
     if start == -1:
-        return False
+        return None
     start += len(START_MARK) + len(os.linesep)
     end = treeStr.find(END_MARK)
     if end == -1:
-        return False
+        return None
     lines = treeStr[start:end].strip().split(os.linesep)
     lines.reverse()
 
@@ -210,13 +210,25 @@ def buildTree(treeStr):
     while len(lines) != 0:
         child = buildNode(root, lines)
         root.children.append(child)
-    return True
+    return root
+
+def filterNode(node, pattern):
+    if pattern in node.name:
+        return node.size
+    sz = 0
+    for child in node.children:
+        sz += filterNode(child, pattern)
+    return sz
 
 if __name__ == "__main__":
     filePath = sys.argv[1]
     treeStr = subprocess.check_output([MALLOC_HISTORY, filePath, "-q", "-callTree"]).decode("ascii")
-    succ = buildTree(treeStr)
-    if not succ:
+    rootNode = buildTree(treeStr)
+    if rootNode is None:
         print ("build tree failed! possibly not a valid output from malloc_history")
     else:
         print ("build tree successfully!")
+        if len(sys.argv) > 2:
+            pattern = sys.argv[2]
+            print ("size for %s = %s" % (pattern, sizeToStr(filterNode(rootNode, pattern))))
+        
