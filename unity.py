@@ -82,6 +82,7 @@ class Node(object):
         self.address = 0
         self.offset = 0
         self.loadAddress = 0
+        self.children = []
 
     def getReadableSize(self):
         return sizeToStr(self.size)
@@ -157,8 +158,9 @@ def findAddress(lineStr, start):
     end = lineStr.find("]", start + 1)
     return int(lineStr[start: end], 16), end + 1
 
-def buildNode(lineStr):
-    print (lineStr)
+def buildNode(parent, lines):
+    lineStr = lines.pop()
+    # print (lineStr)
     nd = Node()
     indent, offset = findStartOfLine(lineStr)
     nd.count, offset = findCount(lineStr, offset)
@@ -173,6 +175,24 @@ def buildNode(lineStr):
         print(str(nd))
         print(lineStr[indent:])
         assert False
+
+    while len(lines) != 0:
+        l = lines[-1]
+        ind, _ = findStartOfLine(l)
+        if ind > indent:
+            child = buildNode(parent, lines)
+            nd.children.append(child)
+        else:
+            break
+    return nd
+
+# Root node is a bit special, it's like count (size) << TOTAL >>
+def buildRootNode(lineStr):
+    nd = Node()
+    indent, offset = findStartOfLine(lineStr)
+    nd.count, offset = findCount(lineStr, offset)
+    nd.size, offset = findSize(lineStr, offset)
+    nd.name = "<< TOTAL >>"
     return nd
 
 def buildTree(treeStr):
@@ -184,9 +204,12 @@ def buildTree(treeStr):
     if end == -1:
         return False
     lines = treeStr[start:end].strip().split(os.linesep)
-    # tests
-    for line in lines[1:]:
-        buildNode(line)
+    lines.reverse()
+
+    root = buildRootNode(lines.pop())
+    while len(lines) != 0:
+        child = buildNode(root, lines)
+        root.children.append(child)
     return True
 
 if __name__ == "__main__":
