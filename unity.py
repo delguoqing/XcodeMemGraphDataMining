@@ -16,19 +16,7 @@ KB = 1024
 MB = KB * KB
 GB = KB * KB * KB
 
-def toSizeFloat(number, div):
-    a = number // div
-    b = number % div
-    ret = str(a)
-    rem = 3 - len(ret)
-    if rem == 0:
-        return ret
-    strB = str(b)
-    strB = strB.zfill(len(str(div)) - 1)
-    ret += "." + strB[:rem]
-    return ret
-
-def toSizeFloat2(number):
+def toSizeFloat(number):
     a = number // 1000
     b = number % 1000
     ret = str(a)
@@ -47,11 +35,11 @@ def sizeToStr(size):
     if size < KB * 1000:
         return "%d bytes" % (size // 1000)
     elif size < MB * 1000:
-        return "%sK" % toSizeFloat2(size // KB)
+        return "%sK" % toSizeFloat(size // KB)
     elif size < GB * 1000:
-        return "%sM" % toSizeFloat2(size // MB)
+        return "%sM" % toSizeFloat(size // MB)
     else:
-        return "%sG" % toSizeFloat2(size // GB)
+        return "%sG" % toSizeFloat(size // GB)
 
 def strToSize(sizeStr):
     digitEnd = len(sizeStr)
