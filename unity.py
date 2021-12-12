@@ -2,13 +2,14 @@
 import sys
 import subprocess
 import os
-import re
 
 HEAP = "heap"
 MALLOC_HISTORY = "malloc_history"
 
 START_MARK = "Call graph:"
 END_MARK = "Total number in stack -- this line is here to get the correct format for importing with the Sampler instrument in Instruments.app"
+
+ENABLE_VALIDATION = False   # debug模式，验证数据提取是不是有bug
 
 # 这个工具打印的size，最多只会有3个有效数字
 # 所以KB=1000
@@ -33,7 +34,7 @@ def toSizeFloat(number):
 # 可能有更简单的写法，太久不写python忘了
 def sizeToStr(size):
     if size < KB * 1000:
-        return "%d bytes" % (size // 1000)
+        return "%d bytes" % toSizeFloat(size)
     elif size < MB * 1000:
         return "%sK" % toSizeFloat(size // KB)
     elif size < GB * 1000:
@@ -171,7 +172,7 @@ def buildNode(parent, lines):
         nd.loadAddress, offset = findLoadAddress(lineStr, offset)
     nd.offset, offset = findOffset(lineStr, offset)
     nd.address, offset = findAddress(lineStr, offset)
-    if str(nd) != lineStr[indent:]:
+    if ENABLE_VALIDATION and str(nd) != lineStr[indent:]:
         print(str(nd))
         print(lineStr[indent:])
         assert False
