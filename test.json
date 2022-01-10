@@ -1,0 +1,559 @@
+{
+    "unit": "byte",
+    "bytes per unit": 1,
+    "start_time": {
+        "mach_absolute_time_ns": 485693616530062,
+        "mach_continuous_time_ns": 2020747904379557,
+        "wall_time_s": 662829372.938117,
+        "date": "2022-01-02T23:16:12.938+08:00"
+    },
+    "processes": [
+        {
+            "name": "M26debug",
+            "pid": 39484,
+            "translated": false,
+            "page size": 16384,
+            "footprint": 865943552,
+            "categories": {
+                "Foundation": {
+                    "dirty": 16384,
+                    "swapped": 16384,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "performance tool data": {
+                    "dirty": 17793024,
+                    "swapped": 2981888,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 60
+                },
+                "__AUTH_CONST": {
+                    "dirty": 16384,
+                    "swapped": 16384,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 462
+                },
+                "__FONT_DATA": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "malloc metadata": {
+                    "dirty": 442368,
+                    "swapped": 114688,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 36
+                },
+                "__DATA": {
+                    "dirty": 8538568,
+                    "swapped": 1688210,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 460
+                },
+                "MALLOC_TINY": {
+                    "dirty": 54984704,
+                    "swapped": 5341184,
+                    "clean": 0,
+                    "reclaimable": 3309568,
+                    "wired": 0,
+                    "regions": 70
+                },
+                "IOAccelerator": {
+                    "dirty": 255131648,
+                    "swapped": 44711936,
+                    "clean": 0,
+                    "reclaimable": 27197440,
+                    "wired": 0,
+                    "regions": 852
+                },
+                "CoreAnimation": {
+                    "dirty": 32768,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 2
+                },
+                "__TEXT": {
+                    "dirty": 32768,
+                    "swapped": 0,
+                    "clean": 41615360,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 488
+                },
+                "IOSurface": {
+                    "dirty": 17891328,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 3
+                },
+                "__DATA_CONST": {
+                    "dirty": 147456,
+                    "swapped": 98304,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 467
+                },
+                "__AUTH": {
+                    "dirty": 342504,
+                    "swapped": 214368,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 337
+                },
+                "__OBJC_RO": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "IOKit": {
+                    "dirty": 294912,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 18
+                },
+                "__OBJC_CONST": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 319
+                },
+                "__DATA_DIRTY": {
+                    "dirty": 673944,
+                    "swapped": 117110,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 394
+                },
+                "MALLOC_LARGE": {
+                    "dirty": 180502528,
+                    "swapped": 115572736,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 3148
+                },
+                "untagged (\"VM_ALLOCATE\")": {
+                    "dirty": 244449280,
+                    "swapped": 26755072,
+                    "clean": 0,
+                    "reclaimable": 5242880,
+                    "wired": 0,
+                    "regions": 1103
+                },
+                "unused dyld shared cache area": {
+                    "dirty": 479400,
+                    "swapped": 192152,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1396
+                },
+                "libnetwork": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 131072,
+                    "wired": 0,
+                    "regions": 8
+                },
+                "__OBJC_RW": {
+                    "dirty": 41744,
+                    "swapped": 32768,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "__UNICODE": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "ImageIO": {
+                    "dirty": 3145728,
+                    "swapped": 3145728,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "Activity Tracing": {
+                    "dirty": 49152,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "stack": {
+                    "dirty": 1474560,
+                    "swapped": 32768,
+                    "clean": 0,
+                    "reclaimable": 114688,
+                    "wired": 0,
+                    "regions": 102
+                },
+                "MALLOC_SMALL": {
+                    "dirty": 78692352,
+                    "swapped": 20807680,
+                    "clean": 0,
+                    "reclaimable": 9207808,
+                    "wired": 0,
+                    "regions": 16
+                },
+                "skywalk": {
+                    "dirty": 278528,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 18
+                },
+                "__LINKEDIT": {
+                    "dirty": 0,
+                    "swapped": 0,
+                    "clean": 12664832,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 16
+                },
+                "mapped file": {
+                    "dirty": 49152,
+                    "swapped": 0,
+                    "clean": 26836992,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 145
+                },
+                "MALLOC_NANO": {
+                    "dirty": 409600,
+                    "swapped": 278528,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                },
+                "os_alloc_once": {
+                    "dirty": 16384,
+                    "swapped": 0,
+                    "clean": 0,
+                    "reclaimable": 0,
+                    "wired": 0,
+                    "regions": 1
+                }
+            },
+            "auxiliary": {
+                "phys_footprint_peak": 878413840,
+                "phys_footprint": 845105208
+            }
+        }
+    ],
+    "errors": [],
+    "warnings": [],
+    "summary": {
+        "Foundation": {
+            "dirty": 16384,
+            "swapped": 16384,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "performance tool data": {
+            "dirty": 17793024,
+            "swapped": 2981888,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 60
+        },
+        "__AUTH_CONST": {
+            "dirty": 16384,
+            "swapped": 16384,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 462
+        },
+        "__FONT_DATA": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "malloc metadata": {
+            "dirty": 442368,
+            "swapped": 114688,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 36
+        },
+        "__DATA": {
+            "dirty": 8538568,
+            "swapped": 1688210,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 460
+        },
+        "IOAccelerator": {
+            "dirty": 255131648,
+            "swapped": 44711936,
+            "clean": 0,
+            "reclaimable": 27197440,
+            "wired": 0,
+            "regions": 852
+        },
+        "CoreAnimation": {
+            "dirty": 32768,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 2
+        },
+        "MALLOC_TINY": {
+            "dirty": 54984704,
+            "swapped": 5341184,
+            "clean": 0,
+            "reclaimable": 3309568,
+            "wired": 0,
+            "regions": 70
+        },
+        "__TEXT": {
+            "dirty": 32768,
+            "swapped": 0,
+            "clean": 41615360,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 488
+        },
+        "IOSurface": {
+            "dirty": 17891328,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 3
+        },
+        "__DATA_CONST": {
+            "dirty": 147456,
+            "swapped": 98304,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 467
+        },
+        "__AUTH": {
+            "dirty": 342504,
+            "swapped": 214368,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 337
+        },
+        "__OBJC_RO": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "IOKit": {
+            "dirty": 294912,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 18
+        },
+        "os_alloc_once": {
+            "dirty": 16384,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "__OBJC_CONST": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 319
+        },
+        "MALLOC_LARGE": {
+            "dirty": 180502528,
+            "swapped": 115572736,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 3148
+        },
+        "untagged (\"VM_ALLOCATE\")": {
+            "dirty": 244449280,
+            "swapped": 26755072,
+            "clean": 0,
+            "reclaimable": 5242880,
+            "wired": 0,
+            "regions": 1103
+        },
+        "libnetwork": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 131072,
+            "wired": 0,
+            "regions": 8
+        },
+        "unused dyld shared cache area": {
+            "dirty": 479400,
+            "swapped": 192152,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1396
+        },
+        "Activity Tracing": {
+            "dirty": 49152,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "__DATA_DIRTY": {
+            "dirty": 673944,
+            "swapped": 117110,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 394
+        },
+        "ImageIO": {
+            "dirty": 3145728,
+            "swapped": 3145728,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "__OBJC_RW": {
+            "dirty": 41744,
+            "swapped": 32768,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "MALLOC_SMALL": {
+            "dirty": 78692352,
+            "swapped": 20807680,
+            "clean": 0,
+            "reclaimable": 9207808,
+            "wired": 0,
+            "regions": 16
+        },
+        "stack": {
+            "dirty": 1474560,
+            "swapped": 32768,
+            "clean": 0,
+            "reclaimable": 114688,
+            "wired": 0,
+            "regions": 102
+        },
+        "skywalk": {
+            "dirty": 278528,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 18
+        },
+        "__LINKEDIT": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 12664832,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 16
+        },
+        "mapped file": {
+            "dirty": 49152,
+            "swapped": 0,
+            "clean": 26836992,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 145
+        },
+        "__UNICODE": {
+            "dirty": 0,
+            "swapped": 0,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "MALLOC_NANO": {
+            "dirty": 409600,
+            "swapped": 278528,
+            "clean": 0,
+            "reclaimable": 0,
+            "wired": 0,
+            "regions": 1
+        },
+        "total": {
+            "dirty": 865927168,
+            "swapped": 222117888,
+            "clean": 81117184,
+            "reclaimable": 45203456,
+            "wired": 0,
+            "regions": 9929
+        }
+    },
+    "total footprint": 865927168,
+    "auxiliary": null,
+    "shared": [],
+    "end_time": {
+        "mach_absolute_time_ns": 485693626558406,
+        "mach_continuous_time_ns": 2020747914407901,
+        "wall_time_s": 662829372.948146,
+        "date": "2022-01-02T23:16:12.948+08:00"
+    },
+    "page size": 16384
+}

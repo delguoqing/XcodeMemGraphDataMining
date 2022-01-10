@@ -2,74 +2,18 @@
 import sys
 import subprocess
 import os
+import utils
 
 HEAP = "heap"
 MALLOC_HISTORY = "malloc_history"
 
-START_MARK = "Call graph:"
-END_MARK = "Total number in stack -- this line is here to get the correct format for importing with the Sampler instrument in Instruments.app"
+START_MARK_CALL_TREE = "Call graph:"
+END_MARK_CALL_TREE = "Total number in stack -- this line is here to get the correct format for importing with the Sampler instrument in Instruments.app"
+
+START_MARK_ALL_BY_SIZE = "----"
+END_MARK_ALL_BY_SIZE = "Binary Images"
 
 ENABLE_VALIDATION = False   # debug模式，验证数据提取是不是有bug
-
-# 这个工具打印的size，最多只会有3个有效数字
-# 所以KB=1000
-KB = 1024
-MB = KB * KB
-GB = KB * KB * KB
-
-def toSizeFloat(number):
-    a = number // 1000
-    b = number % 1000
-    ret = str(a)
-    rem = 3 - len(ret)
-    if rem <= 0:
-        return ret
-    strB = str(b)
-    strB = strB.zfill(3)
-    ret += "." + strB[:rem]
-    return ret
-
-# 这两个函数的写法是为了保证提取信息和转换回去的结果能完全一致
-# 这样才能够用sample数据来做测试
-# 可能有更简单的写法，太久不写python忘了
-def sizeToStr(size):
-    if size < KB * 1000:
-        return "%d bytes" % toSizeFloat(size)
-    elif size < MB * 1000:
-        return "%sK" % toSizeFloat(size // KB)
-    elif size < GB * 1000:
-        return "%sM" % toSizeFloat(size // MB)
-    else:
-        return "%sG" % toSizeFloat(size // GB)
-
-def strToSize(sizeStr):
-    digitEnd = len(sizeStr)
-    dotPosition = -1
-    for i in range(len(sizeStr)):
-        if sizeStr[i] == ".":
-            dotPosition = i
-        elif not sizeStr[i].isdigit():
-            digitEnd = i
-            break
-    
-    if dotPosition == -1:
-        v = int(sizeStr[:digitEnd]) * 1000
-    else:
-        a = int(sizeStr[:dotPosition])
-        b = int(sizeStr[dotPosition + 1: digitEnd])
-        v = a * 1000 + b * (10 ** (4 - digitEnd + dotPosition))
-
-    unit = sizeStr[digitEnd:]
-    if unit == "G":
-        mul = GB
-    elif unit == "M":
-        mul = MB
-    elif unit == "K":
-        mul = KB
-    else:
-        mul = 1
-
-    return v * mul
 
 class Node(object):
     """
@@ -86,7 +30,7 @@ class Node(object):
         self.children = []
 
     def getReadableSize(self):
-        return sizeToStr(self.size)
+        return utils.sizeToStr(self.size)
 
     def __str__(self):
         ret = str(self.count)
@@ -99,6 +43,33 @@ class Node(object):
         else:
             ret += " + %d  [0x%x]" % (self.offset, self.address)
         return ret
+
+    def getSum(self):
+        if len(self.children) == 0:
+            return self.size
+        sz = 0
+        for child in self.children:
+            sz += child.getSum()
+        # if sz != self.size:
+        #     print ("Size dismatch! %d != %d" % (sz, self.size))
+        #     print (str(self))
+        return sz
+
+    # 根据叶子节点，自动重算非叶子节点的值
+    def recalc(self):
+        if len(self.children) == 0:
+            return
+        self.size = 0
+        self.count = 0
+        for child in self.children:
+            child.recalc()
+            self.size += child.size
+            self.count += child.count
+
+    def prettyPrint(self, depth=0):
+        print (('  ' * depth) + str(self))
+        for child in self.children:
+            child.prettyPrint(depth + 1)
 
 def findStartOfLine(lineStr):
     for i in range(len(lineStr)):
@@ -121,12 +92,15 @@ def findSize(lineStr, start):
     start = lineStr.find('(', start)
     if start == -1:
         raise RuntimeError("invalid line! can't parse size!")
-    if not lineStr[start + 1].isdigit():    # 我们可能没有size，不知道为啥。。。
+    if not lineStr[start + 1].isdigit():    # size可能不存在，因为malloc_history命令
+                                            # 对于vm region来说，显示的是
+                                            # dirty+swapped-purgableVolatile，而
+                                            # 这个值可能为0
         return 0, oldStart
     end = lineStr.find(')', start)
     if end == -1 or end == start + 1:
         raise RuntimeError("invalid line! can't parse size!")
-    return strToSize(lineStr[start + 1: end]), end + 1
+    return utils.strToSize(lineStr[start + 1: end]), end + 1
 
 def findName(lineStr, start):
     end = lineStr.find("(in ", start)
@@ -197,11 +171,11 @@ def buildRootNode(lineStr):
     return nd
 
 def buildTree(treeStr):
-    start = treeStr.find(START_MARK)
+    start = treeStr.find(START_MARK_CALL_TREE)
     if start == -1:
         return None
-    start += len(START_MARK) + len(os.linesep)
-    end = treeStr.find(END_MARK)
+    start += len(START_MARK_CALL_TREE) + len(os.linesep)
+    end = treeStr.find(END_MARK_CALL_TREE)
     if end == -1:
         return None
     lines = treeStr[start:end].strip().split(os.linesep)
@@ -213,6 +187,37 @@ def buildTree(treeStr):
         root.children.append(child)
     return root
 
+# 根据-allBySize的输出构建树形结构
+# START_MARK为'----'
+# END_MARK没有作用，一直在字符串结尾
+def buildTree2(treeStr):
+    start = treeStr.find(START_MARK_ALL_BY_SIZE)
+    if start == -1:
+        return None
+    start += len(START_MARK_ALL_BY_SIZE) + len(os.linesep)
+    end = treeStr.find(END_MARK_ALL_BY_SIZE, start)
+    lines = treeStr[start:end].strip().split(os.linesep)
+
+    # create a root node manually
+    root = Node()
+    root.name = "<< TOTAL >>"
+
+    BEFORE_SIZE = ("1 call for", " calls for ")
+    AFTER_SIZE = " bytes:"
+    totalBytes = 0
+    for line in lines:
+        if len(line) == 0:
+            continue
+        if line[0] == '1' and line[1] == ' ':
+            before_size = BEFORE_SIZE[0]
+        else:
+            before_size = BEFORE_SIZE[1]
+        idx0 = line.find(before_size) + len(before_size)
+        idx1 = line.find(AFTER_SIZE, idx0)
+        size = int(line[idx0:idx1])
+        totalBytes += size
+    print ("totalBytes = %d" % totalBytes)
+
 def filterNode(node, pattern):
     if pattern in node.name:
         return node.size
@@ -221,8 +226,47 @@ def filterNode(node, pattern):
         sz += filterNode(child, pattern)
     return sz
 
-if __name__ == "__main__":
+# 用于测试实际累加的size与解析出来的值有何不同
+# 这个函数会打印出查找到的第一个尺寸不匹配的节点及其子节点
+def printFirstSizeDismatch(nd):
+    nd_ = findFirstSizeDismatch(nd)
+    if nd_ is None:
+        print ("Nothing is different")
+    else:
+        nd_.prettyPrint(depth=0)
+
+# 稍微有些低效，但是是外围函数，没事
+def findFirstSizeDismatch(nd):
+    readSize = nd.size
+    calcSize = nd.getSum()
+    if utils.sizeToStr(readSize) == utils.sizeToStr(calcSize):
+        return None
+    for child in nd.children:
+        ret = findFirstSizeDismatch(child)
+        if ret is not None:
+            return ret
+    return nd
+
+def printFirstZeroSize(nd):
+    nd_ = findFirstZeroSize(nd)
+    if nd_ is None:
+        print ("No zero-sized node!")
+    else:
+        nd_.prettyPrint(depth=0)
+
+def findFirstZeroSize(nd):
+    readSize = nd.size
+    if readSize == 0:
+        return nd
+    for child in nd.children:
+        ret = findFirstZeroSize(child)
+        if ret is not None:
+            return ret
+    return None
+    
+def buildTreeByCallTree():
     filePath = sys.argv[1]
+    print (filePath)
     treeStr = subprocess.check_output([MALLOC_HISTORY, filePath, "-q", "-callTree"]).decode("ascii")
     rootNode = buildTree(treeStr)
     if rootNode is None:
@@ -232,4 +276,32 @@ if __name__ == "__main__":
         if len(sys.argv) > 2:
             pattern = sys.argv[2]
             print ("size for %s = %s" % (pattern, sizeToStr(filterNode(rootNode, pattern))))
+        
+        # printFirstSizeDismatch(rootNode)
+        # printFirstZeroSize(rootNode)
+
+        # sm = rootNode.getSum()
+        # print ("calculated sum = %d vs %d, diff=%d" % (sm, rootNode.size, sm - rootNode.size))
+    return rootNode
+
+def buildTreeByAllBySize():
+    filePath = sys.argv[1]
+    treeStr = subprocess.check_output([MALLOC_HISTORY, filePath, "-allBySize"]).decode("ascii")
+    buildTree2(treeStr)
+
+def reportMonoVM(rootNode):
+    print (utils.sizeToStr(filterNode(rootNode, "GC_unmap") + filterNode(rootNode, "GC_unix_mmap_get_mem")))
+
+def reportWWiseVM(rootNode):
+    print (utils.sizeToStr(filterNode(rootNode, "AKPLATFORM::") + filterNode(rootNode, "ausdk::")))
+
+def reportLuaVM(rootNode):
+    print (utils.sizeToStr(filterNode(rootNode, "mmap_probe")))
+
+def reportUnityVM(rootNode):
+    print (utils.sizeToStr(filterNode(rootNode, "MemoryManager::VirtualAllocator::ReserveMemoryBlock")))
+
+if __name__ == "__main__":
+    # buildTreeByAllBySize()
+    rootNode = buildTreeByCallTree()
         
