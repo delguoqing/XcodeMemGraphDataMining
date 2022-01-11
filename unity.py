@@ -275,7 +275,7 @@ def buildTreeByCallTree():
         print ("build tree successfully!")
         if len(sys.argv) > 2:
             pattern = sys.argv[2]
-            print ("size for %s = %s" % (pattern, sizeToStr(filterNode(rootNode, pattern))))
+            print ("size for %s = %s" % (pattern, utils.sizeToStr(filterNode(rootNode, pattern))))
         
         # printFirstSizeDismatch(rootNode)
         # printFirstZeroSize(rootNode)

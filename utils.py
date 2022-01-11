@@ -22,7 +22,7 @@ def toSizeFloat(number):
 # 可能有更简单的写法，太久不写python忘了
 def sizeToStr(size):
     if size < KB * 1000:
-        return "%d bytes" % toSizeFloat(size)
+        return "%s bytes" % toSizeFloat(size)
     elif size < MB * 1000:
         return "%sK" % toSizeFloat(size // KB)
     elif size < GB * 1000:
