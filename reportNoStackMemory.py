@@ -3,7 +3,6 @@ import os
 import sys
 import subprocess
 import utils
-import functools
 from multiprocessing import Pool 
 
 class Region(object):
@@ -69,7 +68,7 @@ class RegionParser(object):
         return region
 
 def getRegions(memgraph):
-    s = subprocess.check_output(["vmmap", "-submaps", "-noCoalesce", "-interleaved", memgraph])
+    s = subprocess.check_output(["vmmap", "-submaps", "-noCoalesce", "-interleaved", memgraph]).decode("utf8")
     BEGIN = "==== regions for"
     END = "==== Legend"
     ibeg = s.find(BEGIN) + len(BEGIN)
@@ -86,7 +85,7 @@ def getRegions(memgraph):
     return regions
 
 def getMallocs(memgraph):
-    s = subprocess.check_output(["heap", "--addresses=all", memgraph])
+    s = subprocess.check_output(["heap", "--addresses=all", memgraph]).decode("utf8")
     BEGIN = "Active blocks in all zones that match pattern '.*':"
     ibeg = s.find(BEGIN) + len(BEGIN)
     ibeg = s.find(os.linesep, ibeg) + len(os.linesep)
@@ -112,6 +111,9 @@ def excludeMallocRegions(regions, mallocAddrs):
     while i < imax and j < jmax:
         addr = mallocAddrs[j]
         region = regions[i]
+        if region.type == "Performance tool data":
+            i += 1
+            continue
         if addr < region.start:
             j += 1
             continue
@@ -120,34 +122,36 @@ def excludeMallocRegions(regions, mallocAddrs):
             outRegions.append(region)
     return outRegions
 
-def hasStack(memgraph, addr):
-    s = subprocess.check_output(["malloc_history", memgraph, "-allBySize", "-q", hex(addr)])
-    return s.find("1 call for") != -1
+def getAllocationsWithStack(memgraph):
+    s = subprocess.check_output(["malloc_history", memgraph, "-allEvents", "-q"]).decode("utf8")
+    lines = s.splitlines(False)
+    ret = set()
+    for i in range(1, len(lines) - 2):
+        line = lines[i]
+        s = line.find(" ")
+        e = line.find("-")
+        ret.add(int(line[s: e], 16))
+    return ret
     
 def report(memgraph):
     regions = getRegions(memgraph)
     mallocAddrs, mallocSizes = getMallocs(memgraph)
     vmRegions = excludeMallocRegions(regions, mallocAddrs)
+    allocations = getAllocationsWithStack(memgraph)
 
     untrackedSize = 0
-    i = 0
-    mallocN = len(mallocAddrs)
-    pool = Pool()
-    for bHasStack in pool.imap(functools.partial(hasStack, memgraph), mallocAddrs):
-        sz = mallocSizes[i]
-        if not bHasStack:
-            untrackedSize += sz
-        i += 1
-
-    print ("")
-    print ("untracked malloc size: %s" % utils.sizeToStr(untrackedSize * 1000))
+    for addr, sz in zip(mallocAddrs, mallocSizes):
+        if addr not in allocations:
+            untrackedSize += sz * 1000
+    
+    print ("untracked malloc size: %s" % utils.sizeToStr(untrackedSize))
 
     for region in vmRegions:
-        if not hasStack(memgraph, region.start):
-            print ("untracked vm region at 0x%x, size=%d bytes" % (region.start, region.dirtySize + region.swappedSize))
+        if region.start not in allocations:
+            print ("untracked vm region %s at 0x%x, size=%d bytes" % (region.type, region.start, region.dirtySize + region.swappedSize))
             untrackedSize += region.dirtySize + region.swappedSize
 
-    print ("untracked size: %s" % utils.sizeToStr(untrackedSize * 1000))
+    print ("untracked size: %s" % utils.sizeToStr(untrackedSize))
 
 if __name__ == "__main__":
     report(sys.argv[1])
