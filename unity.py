@@ -28,6 +28,7 @@ class Node(object):
         self.offset = 0
         self.loadAddress = 0
         self.children = []
+        self.parent = None
 
     def getReadableSize(self):
         return utils.sizeToStr(self.size)
@@ -146,6 +147,7 @@ def buildNode(parent, lines):
         nd.loadAddress, offset = findLoadAddress(lineStr, offset)
     nd.offset, offset = findOffset(lineStr, offset)
     nd.address, offset = findAddress(lineStr, offset)
+    nd.parent = parent
     if ENABLE_VALIDATION and str(nd) != lineStr[indent:]:
         print(str(nd))
         print(lineStr[indent:])
@@ -186,37 +188,6 @@ def buildTree(treeStr):
         child = buildNode(root, lines)
         root.children.append(child)
     return root
-
-# 根据-allBySize的输出构建树形结构
-# START_MARK为'----'
-# END_MARK没有作用，一直在字符串结尾
-def buildTree2(treeStr):
-    start = treeStr.find(START_MARK_ALL_BY_SIZE)
-    if start == -1:
-        return None
-    start += len(START_MARK_ALL_BY_SIZE) + len(os.linesep)
-    end = treeStr.find(END_MARK_ALL_BY_SIZE, start)
-    lines = treeStr[start:end].strip().split(os.linesep)
-
-    # create a root node manually
-    root = Node()
-    root.name = "<< TOTAL >>"
-
-    BEFORE_SIZE = ("1 call for", " calls for ")
-    AFTER_SIZE = " bytes:"
-    totalBytes = 0
-    for line in lines:
-        if len(line) == 0:
-            continue
-        if line[0] == '1' and line[1] == ' ':
-            before_size = BEFORE_SIZE[0]
-        else:
-            before_size = BEFORE_SIZE[1]
-        idx0 = line.find(before_size) + len(before_size)
-        idx1 = line.find(AFTER_SIZE, idx0)
-        size = int(line[idx0:idx1])
-        totalBytes += size
-    print ("totalBytes = %d" % totalBytes)
 
 def filterNode(node, pattern):
     if pattern in node.name:
@@ -284,11 +255,6 @@ def buildTreeByCallTree():
         # print ("calculated sum = %d vs %d, diff=%d" % (sm, rootNode.size, sm - rootNode.size))
     return rootNode
 
-def buildTreeByAllBySize():
-    filePath = sys.argv[1]
-    treeStr = subprocess.check_output([MALLOC_HISTORY, filePath, "-allBySize"]).decode("ascii")
-    buildTree2(treeStr)
-
 def reportMonoVM(rootNode):
     print (utils.sizeToStr(filterNode(rootNode, "GC_unmap") + filterNode(rootNode, "GC_unix_mmap_get_mem")))
 
@@ -301,7 +267,74 @@ def reportLuaVM(rootNode):
 def reportUnityVM(rootNode):
     print (utils.sizeToStr(filterNode(rootNode, "MemoryManager::VirtualAllocator::ReserveMemoryBlock")))
 
+def interactiveShell():
+    bStackMode = False
+    while True:
+        cmd = input()
+        if cmd == "stack":
+            bStackMode()
+
+class InteractiveMode(object):
+    
+    def __init__(self, rootNode):
+        self.isStackMode = False
+        self.currentNode = None
+        self.rootNode = rootNode
+        self.recordNodes = set()
+
+    def execute(self):
+        self.prompt()
+        while True:            
+            tokens = input().split(None, 1)
+            if len(tokens) == 0:
+                continue
+            cmd = tokens[0]
+            if cmd == "h":
+                self.help()
+            elif cmd == "t":
+                self.stackMode()
+            elif cmd == "r":
+                if len(tokens) == 1:
+                    print ("Total foot print: %s" % (utils.sizeToStr(self.rootNode.size)))
+                else:
+                    print("Total %s memory for %s" % (utils.sizeToStr(filterNode(self.rootNode, tokens[1]))))
+            elif cmd == "q":
+                break
+            else:
+                print ("unknown command!")
+
+    def prompt(self):
+        print ("Interactive Mode: h for help")
+
+    def help(self):
+        print ("t - entering stack mode, press q to exit stack mode")
+
+    def stackMode(self):
+        self.isStackMode = True
+        print ("entering stack mode ...")
+        self.currentNode = self.rootNode
+        self.printStackContext()
+        while True:
+            tokens = input().split(None, 1)
+            cmd = tokens[0]
+            if cmd == "record":
+                pass
+            elif cmd == "dumpRecords":
+                pass
+            elif cmd == "q":
+                break
+            else:
+                print ("unknown command!")
+        print ("exiting stack mode ...")
+        self.isStackMode = False
+
+    def printStackContext(self):
+        pass
+
 if __name__ == "__main__":
-    # buildTreeByAllBySize()
+    print ("caching call stacks ...")
     rootNode = buildTreeByCallTree()
+
+    shell = InteractiveMode(rootNode)
+    shell.execute()
         
