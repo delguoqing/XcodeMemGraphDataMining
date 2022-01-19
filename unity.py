@@ -3,6 +3,7 @@ import sys
 import subprocess
 import os
 import utils
+import curses
 
 HEAP = "heap"
 MALLOC_HISTORY = "malloc_history"
@@ -276,16 +277,18 @@ def interactiveShell():
 
 class InteractiveMode(object):
     
-    def __init__(self, rootNode):
+    def __init__(self, stdscr, rootNode):
         self.isStackMode = False
         self.currentNode = None
         self.rootNode = rootNode
         self.recordNodes = set()
+        self.stdscr = stdscr
 
     def execute(self):
         self.prompt()
-        while True:            
-            tokens = input().split(None, 1)
+        while True:      
+            self.log(">> ", newLine=False)
+            tokens = self.stdscr.getstr().decode("ascii").split(None, 1)
             if len(tokens) == 0:
                 continue
             cmd = tokens[0]
@@ -295,27 +298,48 @@ class InteractiveMode(object):
                 self.stackMode()
             elif cmd == "r":
                 if len(tokens) == 1:
-                    print ("Total foot print: %s" % (utils.sizeToStr(self.rootNode.size)))
+                    self.log("Total foot print: %s" % (utils.sizeToStr(self.rootNode.size)))
                 else:
-                    print("Total %s memory for %s" % (utils.sizeToStr(filterNode(self.rootNode, tokens[1]))))
+                    self.log("Total %s memory for %s" % (utils.sizeToStr(filterNode(self.rootNode, tokens[1])), tokens[1]))
             elif cmd == "q":
                 break
             else:
-                print ("unknown command!")
+                self.log("unknown command!")
 
     def prompt(self):
-        print ("Interactive Mode: h for help")
+        self.log("Interactive Mode: h for help")
 
     def help(self):
-        print ("t - entering stack mode, press q to exit stack mode")
+        self.log("t - entering stack mode, press q to exit stack mode")
 
     def stackMode(self):
         self.isStackMode = True
-        print ("entering stack mode ...")
+        self.log("entering stack mode ...")
         self.currentNode = self.rootNode
         self.printStackContext()
         while True:
-            tokens = input().split(None, 1)
+            self.log(">> ", newLine=False)
+            ch = self.stdscr.getch()
+
+            arrowKeyHandled = True
+            if ch == curses.KEY_LEFT:
+                pass    # go up
+            elif ch == curses.KEY_RIGHT:
+                pass    # go down
+            elif ch == curses.KEY_UP:
+                pass    # go to previous sibling
+            elif ch == curses.KEY_DOWN:
+                pass    # go to next sibling
+            else:
+                arrowKeyHandled = False
+
+            if arrowKeyHandled:
+                continue
+
+            self.stdscr.ungetch(ch)
+            tokens = self.stdscr.getstr().decode("ascii").split(None, 1)
+            if len(tokens) == 0:
+                continue
             cmd = tokens[0]
             if cmd == "record":
                 pass
@@ -324,17 +348,42 @@ class InteractiveMode(object):
             elif cmd == "q":
                 break
             else:
-                print ("unknown command!")
-        print ("exiting stack mode ...")
+                self.log("unknown command!")
+
+        self.log("exiting stack mode ...")
         self.isStackMode = False
 
     def printStackContext(self):
         pass
 
+    def log(self, s, newLine=True):
+        self.stdscr.addstr(s)
+        if newLine:
+            self.stdscr.addstr(os.linesep)
+
+def init_curses():
+    stdscr = curses.initscr()
+    stdscr.keypad(True)
+    # curses.noecho()
+    curses.cbreak()
+    return stdscr
+
+def cleanup_curses(stdscr):
+    stdscr.keypad(False)
+    # curses.echo()
+    curses.nocbreak()
+    curses.endwin()
+    
 if __name__ == "__main__":
     print ("caching call stacks ...")
     rootNode = buildTreeByCallTree()
 
-    shell = InteractiveMode(rootNode)
-    shell.execute()
+    stdscr = init_curses()
+    try:
+        shell = InteractiveMode(stdscr, rootNode)
+        shell.execute()
+    except Exception as e:
+        cleanup_curses(stdscr)
+        raise e
+    cleanup_curses(stdscr)
         
