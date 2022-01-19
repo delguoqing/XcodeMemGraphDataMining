@@ -38,11 +38,14 @@ class Node(object):
         ret = str(self.count)
         if self.size != 0:
             ret += " (%s)" % self.getReadableSize()
-        ret += " %s  (in %s)" % (self.name, self.moduleName)
+        if self.name != "":
+            ret += " %s " % self.name
+        if self.moduleName != "":
+            ret += " (in %s)" % self.moduleName
         if self.name == "???":
             ret += "  load address 0x%x" % self.loadAddress
             ret += " + 0x%x  [0x%x]" % (self.offset, self.address)
-        else:
+        elif self.name != "":
             ret += " + %d  [0x%x]" % (self.offset, self.address)
         return ret
 
@@ -158,7 +161,7 @@ def buildNode(parent, lines):
         l = lines[-1]
         ind, _ = findStartOfLine(l)
         if ind > indent:
-            child = buildNode(parent, lines)
+            child = buildNode(nd, lines)
             nd.children.append(child)
         else:
             break
@@ -321,22 +324,13 @@ class InteractiveMode(object):
             self.log(">> ", newLine=False)
             ch = self.stdscr.getch()
 
-            arrowKeyHandled = True
-            if ch == curses.KEY_LEFT:
-                pass    # go up
-            elif ch == curses.KEY_RIGHT:
-                pass    # go down
-            elif ch == curses.KEY_UP:
-                pass    # go to previous sibling
-            elif ch == curses.KEY_DOWN:
-                pass    # go to next sibling
-            else:
-                arrowKeyHandled = False
-
-            if arrowKeyHandled:
+            if ch in (curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN):
+                self.log("", newLine=True)
+                self.navigateTo(ch)
+                self.printStackContext()
                 continue
 
-            self.stdscr.ungetch(ch)
+            curses.ungetch(ch)
             tokens = self.stdscr.getstr().decode("ascii").split(None, 1)
             if len(tokens) == 0:
                 continue
@@ -354,18 +348,65 @@ class InteractiveMode(object):
         self.isStackMode = False
 
     def printStackContext(self):
-        pass
+        chain = []
+        node = self.currentNode
+        while True:
+            chain.append(node)
+            if node.parent is None:
+                break
+            node = node.parent
+        chain.reverse()
+        indent = ' '
+        for i in range(len(chain)):
+            self.log(indent * i, newLine=False)
+            self.log(str(chain[i]))
 
-    def log(self, s, newLine=True):
-        self.stdscr.addstr(s)
+    def navigateTo(self, dir):
+        if dir == curses.KEY_LEFT:
+            if self.currentNode.parent is not None:
+                self.currentNode = self.currentNode.parent
+                return
+        elif dir == curses.KEY_RIGHT:
+            if len(self.currentNode.children) > 0:
+                self.currentNode = self.currentNode.children[0]
+                return
+        elif dir == curses.KEY_UP or dir == curses.KEY_DOWN:
+            if self.currentNode.parent is None:
+                return
+            siblings = self.currentNode.parent.children
+            if len(siblings) == 1:
+                return
+            idx = siblings.index(self.currentNode)
+            if idx == -1:
+                return
+            if dir == curses.KEY_UP:
+                idx -= 1
+                if idx < 0:
+                    idx = len(siblings) - 1
+            else:
+                idx = (idx + 1) % len(siblings)
+            self.currentNode = siblings[idx]
+            return
+        return
+
+    def log(self, s, newLine=True, clamp=True):
+        try:
+            self.stdscr.addstr(s)
+        except curses.error:
+                pass
         if newLine:
-            self.stdscr.addstr(os.linesep)
-
+            try:
+                self.stdscr.addstr(os.linesep)
+            except curses.error:
+                pass
+            
 def init_curses():
     stdscr = curses.initscr()
     stdscr.keypad(True)
     # curses.noecho()
     curses.cbreak()
+    # size = stdscr.getmaxyx()
+    # stdscr.resize(size[0], 1024)
     return stdscr
 
 def cleanup_curses(stdscr):
